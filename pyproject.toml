@@ -82,6 +82,7 @@ publish = "uv publish"
 
 [tool.pixi.feature.test.dependencies]
 pytest = "*"
+tqdm = ">=4.67.1,<5"
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --doctest-modules"
