@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 69f22fd
+_src_path: https://github.com/maurosilber/python-lib-template
+github_username: maurosilber
+license: MIT
+max_python_version: '3.13'
+min_python_version: '3.10'
+platforms:
+- osx-arm64
+- linux-64
+project_description: A library of events for scipy.integrate.solve_ivp.
+project_name: scipy-events
+project_slug: scipy_events
+your_email: maurosilber@gmail.com
+your_name: Mauro Silberberg
