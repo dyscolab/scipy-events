@@ -1,14 +1,12 @@
-from typing import Protocol
+from typing import Callable, Protocol
 
 from numpy.typing import NDArray
 from scipy.integrate import OdeSolution
 
 
 class OdeSolver(Protocol):
-    n: int
-    "Number of equations."
-    status: str
-    "Current status of the solver: 'running', 'finished' or 'failed'."
+    fun: Callable[[float, NDArray], NDArray]
+    "RHS function."
     t_bound: float
     "Boundary time."
     direction: float
@@ -17,23 +15,17 @@ class OdeSolver(Protocol):
     "Current time."
     y: NDArray
     "Current state."
-    t_old: float
+    f: NDArray
+    "Current evaluation of RHS."
+    t_old: float | None
     "Previous time. None if no steps were made yet."
-    step_size: float
+    step_size: float | None
     "Size of the last successful step. None if no steps were made yet."
-    nfev: int
-    "Number of the system's rhs evaluations."
-    njev: int
-    "Number of the Jacobian evaluations."
-    nlu: int
-    "Number of LU decompositions."
 
     atol: float
     "Absolute tolerance."
     rtol: float
     "Relative tolerance."
-    f: float
-    "Last evaluation of RHS."
 
 
 class OdeResult(Protocol):

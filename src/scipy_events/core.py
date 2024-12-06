@@ -8,6 +8,22 @@ from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 from .typing import OdeResult, OdeSolver
 
 
+class _WrappedSolver:
+    def __init__(self, solver: OdeSolver):
+        self.solver = solver
+
+    def __getattr__(self, name):
+        return getattr(self.solver, name)
+
+    @property
+    def f(self) -> NDArray:
+        try:
+            return self.solver.f
+        except AttributeError:
+            # LSODA and BDF do not have an `f` attribute.
+            return self.solver.fun(self.solver.t, self.solver.y)
+
+
 class _OdeWrapper(type):
     """Allows access to the solver instance created inside scipy.integrate.solve_ivp.
 
@@ -16,7 +32,7 @@ class _OdeWrapper(type):
     """
 
     solver_cls: type[OdeSolver]
-    solver: OdeSolver
+    solver: _WrappedSolver
 
     def __new__(cls, solver_cls: type[OdeSolver], /):
         return super().__new__(cls, "OdeWrapperInstance", (_OdeSolver,), {})
@@ -26,8 +42,9 @@ class _OdeWrapper(type):
 
     def __call__(self, *args, **kwargs):
         """Saves reference to the solver instance"""
-        self.solver = self.solver_cls(*args, **kwargs)
-        return self.solver
+        solver = self.solver_cls(*args, **kwargs)
+        self.solver = _WrappedSolver(solver)
+        return solver
 
 
 class Event(Protocol):
@@ -48,7 +65,7 @@ class EventWithSolver(Event):
 
     @property
     def solver(self) -> OdeSolver:
-        return self._ode_wrapper.solver
+        return self._ode_wrapper.solver  # type: ignore
 
 
 def solve_ivp(
