@@ -1,27 +1,50 @@
+from dataclasses import dataclass
 from typing import Any, Callable, Literal, Protocol, Sequence
 
 from numpy.typing import ArrayLike, NDArray
 from scipy.integrate import solve_ivp as _solve_ivp
-from scipy.integrate._ivp.ivp import METHODS
+from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS
 from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 
 from .typing import OdeResult, OdeSolver
 
 
-class _WrappedSolver:
-    def __init__(self, solver: OdeSolver):
-        self.solver = solver
+@dataclass
+class _LSODAWrapper:
+    solver: LSODA
 
     def __getattr__(self, name):
         return getattr(self.solver, name)
 
     @property
     def f(self) -> NDArray:
-        try:
-            return self.solver.f
-        except AttributeError:
-            # LSODA and BDF do not have an `f` attribute.
-            return self.solver.fun(self.solver.t, self.solver.y)
+        return self.solver.fun(self.solver.t, self.solver.y)
+
+    @property
+    def atol(self):
+        return self.solver._lsoda_solver._integrator.atol
+
+    @property
+    def rtol(self):
+        return self.solver._lsoda_solver._integrator.rtol
+
+
+@dataclass
+class _BDFWrapper:
+    solver: BDF
+
+    def __getattr__(self, name):
+        return getattr(self.solver, name)
+
+    @property
+    def f(self) -> NDArray:
+        return self.solver.fun(self.solver.t, self.solver.y)
+
+
+_wrappers = {
+    LSODA: _LSODAWrapper,
+    BDF: _BDFWrapper,
+}
 
 
 class _OdeWrapper(type):
@@ -32,7 +55,7 @@ class _OdeWrapper(type):
     """
 
     solver_cls: type[OdeSolver]
-    solver: _WrappedSolver
+    solver: OdeSolver
 
     def __new__(cls, solver_cls: type[OdeSolver], /):
         return super().__new__(cls, "OdeWrapperInstance", (_OdeSolver,), {})
@@ -43,7 +66,10 @@ class _OdeWrapper(type):
     def __call__(self, *args, **kwargs):
         """Saves reference to the solver instance"""
         solver = self.solver_cls(*args, **kwargs)
-        self.solver = _WrappedSolver(solver)
+        try:
+            self.solver = _wrappers[self.solver_cls](solver)  # type: ignore
+        except KeyError:
+            self.solver = solver
         return solver
 
 
