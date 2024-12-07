@@ -1,11 +1,14 @@
+import itertools
 from dataclasses import KW_ONLY, dataclass
-from typing import Any, Callable, Literal, Sequence
+from typing import Any, Callable, Literal, Sequence, cast
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.integrate import solve_ivp as _solve_ivp
-from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS
+from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS, OdeSolution
 from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 
+from .change import Change
 from .typing import Condition, OdeResult, OdeSolver
 
 
@@ -108,7 +111,7 @@ def solve_ivp(
     | Literal["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"] = "RK45",
     t_eval: ArrayLike | None = None,
     dense_output: bool = False,
-    events: Sequence[Condition | Event] = (),
+    events: Sequence[Condition | Event | Change] = (),
     vectorized: bool = False,
     args: tuple[Any] | None = None,
     **options,
@@ -121,12 +124,24 @@ def solve_ivp(
     It is only necessary to call this function if you need to use EventWithSolver events.
     Otherwise, scipy.integrate.solve_ivp can be used.
     """
+    if t_eval is not None:
+        t_eval = np.asarray(t_eval)
+
     if isinstance(method, str):
         method = METHODS[method]
     ode_wrapper = _OdeWrapper(method)  # type: ignore
 
-    normalized_events = []
-    for e in events:
+    normalized_events: list[Event] = []
+    change_events: list[tuple[int, Change]] = []
+    for i, e in enumerate(events):
+        if isinstance(e, Change):
+            change_events.append((i, e))
+            e = Event(
+                e.event,
+                terminal=True,
+                direction=e.direction,
+            )
+
         if not isinstance(e, Event):
             e = Event(
                 e,
@@ -139,21 +154,82 @@ def solve_ivp(
 
         normalized_events.append(e)
 
-    result = _solve_ivp(
-        fun,
-        t_span=t_span,
-        y0=y0,
-        method=ode_wrapper,  # type: ignore
-        t_eval=t_eval,
-        dense_output=dense_output,
-        events=normalized_events,
-        vectorized=vectorized,
-        args=args,
-        **options,
-    )
+    t0, t_end = t_span
+    results = []
+    while True:
+        r: OdeResult = _solve_ivp(
+            fun,
+            t_span=(t0, t_end),
+            y0=y0,
+            method=ode_wrapper,  # type: ignore
+            t_eval=t_eval,
+            dense_output=dense_output,
+            events=normalized_events,
+            vectorized=vectorized,
+            args=args,
+            **options,
+        )
+        results.append(r)
+        if r.status != 1:
+            break
+
+        assert r.t_events is not None
+        assert r.y_events is not None
+        for i, e in change_events:
+            if r.t_events[i].size == 1:
+                t0 = r.t_events[i][0]
+                y0 = r.y_events[i][:, 0].copy()
+                y0 = e.change(t0, y0)
+                t0 = np.nextafter(t0, np.inf)
+                if t_eval is not None:
+                    t_eval = t_eval[np.searchsorted(t_eval, t0) :]
+                break
+        else:
+            break  # not a change event
 
     for e in normalized_events:
         if isinstance(e, WithSolver):
             del e._ode_wrapper
 
-    return result
+    return _join_results(results)
+
+
+def _join_results(results: list[OdeResult], /) -> OdeResult:
+    # Modify last to retain its message and success attributes.
+    last = results[-1]
+    last.t = np.concatenate([r.t for r in results])
+    last.y = np.concatenate([r.y for r in results], axis=-1)
+    last.nfev = sum(r.nfev for r in results)
+    last.njev = sum(r.njev for r in results)
+    last.nlu = sum(r.nlu for r in results)
+
+    if last.sol is not None:
+        sols = cast(list[OdeSolution], [r.sol for r in results])
+        ts = [sols[0].ts]
+        ts.extend((s.ts[1:] for s in sols[1:]))
+        last.sol = OdeSolution(
+            ts=np.concatenate(ts),
+            interpolants=list(
+                itertools.chain.from_iterable(s.interpolants for s in sols)
+            ),
+        )
+
+    if last.t_events is not None and last.y_events is not None:
+        for i in range(len(last.t_events)):
+            last.t_events[i] = np.concatenate(
+                [
+                    r.t_events[i]  # type: ignore
+                    for r in results
+                ]
+            )
+            last.y_events[i] = np.concatenate(
+                [
+                    np.atleast_2d(
+                        r.y_events[i]  # type: ignore
+                    )
+                    for r in results
+                ],
+                axis=-1,
+            )
+
+    return last
