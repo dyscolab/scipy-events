@@ -1,7 +1,5 @@
 from typing import Protocol
 
-from ._core import Event
-
 
 class ProgressBar(Protocol):
     desc: str
@@ -11,7 +9,7 @@ class ProgressBar(Protocol):
     def update(self, n: float = 1, /) -> bool | None: ...
 
 
-class Progress(Event):
+class Progress:
     def __init__(self, pbar: ProgressBar, /):
         self.pbar = pbar
 
@@ -21,7 +19,7 @@ class Progress(Event):
 
         return cls(tqdm(total=total_time))
 
-    def __call__(self, t: float, y):
+    def __call__(self, t: float, y, /):
         if self.pbar.total is None:
             self.pbar.desc = f"{t:=.3f}"
             self.pbar.update()

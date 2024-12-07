@@ -1,12 +1,12 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Literal, Protocol, Sequence
+from dataclasses import KW_ONLY, dataclass
+from typing import Any, Callable, Literal, Sequence
 
 from numpy.typing import ArrayLike, NDArray
 from scipy.integrate import solve_ivp as _solve_ivp
 from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS
 from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 
-from .typing import OdeResult, OdeSolver
+from .typing import Condition, OdeResult, OdeSolver
 
 
 @dataclass
@@ -73,7 +73,10 @@ class _OdeWrapper(type):
         return solver
 
 
-class Event(Protocol):
+@dataclass
+class Event:
+    condition: Condition
+    _: KW_ONLY
     terminal: bool | int = False
     "Whether to terminate integration if this event occurs, or after the specified number of times."
     direction: float = 0.0
@@ -81,11 +84,12 @@ class Event(Protocol):
     If direction is positive, event will only trigger when going from negative to positive,
     and vice versa if direction is negative. If 0, then either direction will trigger event."""
 
-    def __call__(self, t: float, y: NDArray) -> float: ...
+    def __call__(self, t: float, y: NDArray, /) -> float:
+        return self.condition(t, y)
 
 
-class EventWithSolver(Event):
-    """An event with access to the solver instance."""
+class WithSolver:
+    """Mixin to get access to the solver instance."""
 
     _ode_wrapper: _OdeWrapper
 
@@ -104,7 +108,7 @@ def solve_ivp(
     | Literal["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"] = "RK45",
     t_eval: ArrayLike | None = None,
     dense_output: bool = False,
-    events: Sequence[Event] = (),
+    events: Sequence[Condition | Event] = (),
     vectorized: bool = False,
     args: tuple[Any] | None = None,
     **options,
@@ -121,11 +125,19 @@ def solve_ivp(
         method = METHODS[method]
     ode_wrapper = _OdeWrapper(method)  # type: ignore
 
-    wrapped_events = []
+    normalized_events = []
     for e in events:
-        if isinstance(e, EventWithSolver):
-            e._ode_wrapper = ode_wrapper
-        wrapped_events.append(e)
+        if not isinstance(e, Event):
+            e = Event(
+                e,
+                terminal=getattr(e, "terminal", False),
+                direction=getattr(e, "direction", 0.0),
+            )
+
+        if isinstance(e.condition, WithSolver):
+            e.condition._ode_wrapper = ode_wrapper
+
+        normalized_events.append(e)
 
     result = _solve_ivp(
         fun,
@@ -134,14 +146,14 @@ def solve_ivp(
         method=ode_wrapper,  # type: ignore
         t_eval=t_eval,
         dense_output=dense_output,
-        events=wrapped_events,
+        events=normalized_events,
         vectorized=vectorized,
         args=args,
         **options,
     )
 
-    for e in wrapped_events:
-        if isinstance(e, EventWithSolver):
+    for e in normalized_events:
+        if isinstance(e, WithSolver):
             del e._ode_wrapper
 
     return result

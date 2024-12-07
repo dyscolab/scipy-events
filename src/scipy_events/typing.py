@@ -1,4 +1,4 @@
-from typing import Callable, Protocol
+from typing import Callable, Protocol, runtime_checkable
 
 from numpy.typing import NDArray
 from scipy.integrate import OdeSolution
@@ -54,3 +54,13 @@ class OdeResult(Protocol):
     "Human-readable description of the termination reason."
     success: bool
     "True if the solver reached the interval end or a termination event occurred (status >= 0)."
+
+
+@runtime_checkable
+class Condition(Protocol):
+    """Events occur at the zeros of continuous function of time and state.
+
+    Solvers will find an accurate value of t at which condition(t, y(t)) = 0 using a root-finding algorithm.
+    """
+
+    def __call__(self, t: float, y: NDArray, /) -> float: ...
