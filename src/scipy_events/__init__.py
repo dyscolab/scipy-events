@@ -1,4 +1,4 @@
-from .core import solve_ivp
+from ._core import solve_ivp
 from .progress import Progress
 from .steady_state import SmallDerivatives
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-from .core import EventWithSolver
+from ._core import EventWithSolver
 
 
 @dataclass(kw_only=True)

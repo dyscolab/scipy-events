@@ -1,7 +1,7 @@
 from pytest import mark
 
 from .. import SmallDerivatives, solve_ivp
-from ..core import METHODS
+from .._core import METHODS
 
 
 @mark.parametrize("method", METHODS)

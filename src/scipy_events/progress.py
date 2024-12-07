@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from .core import Event
+from ._core import Event
 
 
 class ProgressBar(Protocol):
