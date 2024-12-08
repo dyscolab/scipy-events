@@ -9,13 +9,15 @@ from ._core import WithSolver
 @dataclass(kw_only=True)
 class SmallDerivatives(WithSolver):
     atol: float | NDArray | None = None
-    "Absolute tolerance. Uses solver tolerance by default."
+    "Absolute tolerance. Uses solver.atol * factor by default."
     rtol: float | NDArray | None = None
-    "Relative tolerance. Uses solver tolerance by default."
+    "Relative tolerance. Uses solver.rtol * factor by default."
+    factor: float | NDArray = 10.0
+    "Factor relative to solver tolerance."
 
     def __call__(self, t: float, y: NDArray, /) -> float:
-        atol = self.atol if self.atol is not None else self.solver.atol
-        rtol = self.rtol if self.rtol is not None else self.solver.rtol
+        atol = self.atol if self.atol is not None else self.solver.atol * self.factor
+        rtol = self.rtol if self.rtol is not None else self.solver.rtol * self.factor
 
         dy = np.abs(self.solver.f)
         if np.all((dy < atol) | (dy < rtol * np.abs(y))):
