@@ -1,6 +1,7 @@
+import heapq
 import itertools
-from dataclasses import KW_ONLY, dataclass
-from typing import Any, Callable, Literal, Sequence, cast
+from dataclasses import KW_ONLY, dataclass, field
+from typing import Any, Callable, Iterator, Literal, Sequence, cast
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -8,7 +9,7 @@ from scipy.integrate import solve_ivp as _solve_ivp
 from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS, OdeSolution
 from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 
-from .change import Change
+from .change import Change, ChangeAt
 from .typing import Condition, OdeResult, OdeSolver
 
 
@@ -111,7 +112,7 @@ def solve_ivp(
     | Literal["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"] = "RK45",
     t_eval: ArrayLike | None = None,
     dense_output: bool = False,
-    events: Sequence[Condition | Event | Change] = (),
+    events: Sequence[Condition | Event | Change | ChangeAt] = (),
     vectorized: bool = False,
     args: tuple[Any] | None = None,
     **options,
@@ -131,9 +132,15 @@ def solve_ivp(
         method = METHODS[method]
     ode_wrapper = _OdeWrapper(method)  # type: ignore
 
-    normalized_events: list[Event] = []
+    remaining_events: list[Event] = []
+    remaining_position: list[int] = []
     change_events: list[tuple[int, Change]] = []
+    change_at_events = ChangeAtHandler()
     for i, e in enumerate(events):
+        if isinstance(e, ChangeAt):
+            change_at_events.add(i, e)
+            continue
+
         if isinstance(e, Change):
             change_events.append((i, e))
             e = Event(
@@ -152,46 +159,74 @@ def solve_ivp(
         if isinstance(e.condition, WithSolver):
             e.condition._ode_wrapper = ode_wrapper
 
-        normalized_events.append(e)
+        remaining_events.append(e)
+        remaining_position.append(i)
 
     t0, t_end = t_span
+    t_next = change_at_events.next_time if len(change_at_events.events) > 0 else t_end
+
     results = []
-    while True:
+    while t0 < t_end:
         r: OdeResult = _solve_ivp(
             fun,
-            t_span=(t0, t_end),
+            t_span=(t0, t_next),
             y0=y0,
             method=ode_wrapper,  # type: ignore
             t_eval=t_eval,
             dense_output=dense_output,
-            events=normalized_events,
+            events=remaining_events,
             vectorized=vectorized,
             args=args,
             **options,
         )
         results.append(r)
-        if r.status != 1:
-            break
 
-        assert r.t_events is not None
-        assert r.y_events is not None
-        for i, e in change_events:
-            if r.t_events[i].size == 1:
-                t0 = r.t_events[i][0]
-                y0 = r.y_events[i][:, 0].copy()
-                y0 = e.change(t0, y0)
+        match r.status:
+            case 1:
+                assert r.t_events is not None
+                assert r.y_events is not None
+                for i, e in change_events:
+                    if r.t_events[i].size == 1:
+                        t0 = r.t_events[i][0]
+                        y0 = r.y_events[i][:, 0].copy()
+                        y0 = e.change(t0, y0)
+                        t0 = np.nextafter(t0, np.inf)
+                        if t_eval is not None:
+                            t_eval = t_eval[np.searchsorted(t_eval, t0) :]
+                        break
+                else:
+                    break  # not a change event
+            case 0 if t_next < t_end:
+                t0 = ode_wrapper.solver.t
+                y0 = ode_wrapper.solver.y.copy()
+                y0 = change_at_events.apply_changes(t0, y0)
                 t0 = np.nextafter(t0, np.inf)
-                if t_eval is not None:
-                    t_eval = t_eval[np.searchsorted(t_eval, t0) :]
+                t_next = min(change_at_events.next_time, t_end)
+            case _:
                 break
-        else:
-            break  # not a change event
 
-    for e in normalized_events:
+    for e in remaining_events:
         if isinstance(e, WithSolver):
             del e._ode_wrapper
 
-    return _join_results(results)
+    result = _join_results(results)
+    if result.t_events is not None and result.y_events is not None:
+        t_events, y_events = [], []
+        for _, t, y in heapq.merge(
+            zip(remaining_position, result.t_events, result.y_events),
+            (
+                (e.order, np.asarray(e.t_events), np.asarray(y_events))
+                for e in change_at_events.events
+            ),
+        ):
+            t_events.append(t)
+            y_events.append(y)
+        result.t_events = t_events
+        result.y_events = y_events
+    elif len(change_at_events.events) > 0:
+        result.t_events = [np.asarray(e.t_events) for e in change_at_events.events]
+        result.y_events = [np.asarray(e.y_events) for e in change_at_events.events]
+    return result
 
 
 def _join_results(results: list[OdeResult], /) -> OdeResult:
@@ -233,3 +268,42 @@ def _join_results(results: list[OdeResult], /) -> OdeResult:
             )
 
     return last
+
+
+@dataclass(order=True)
+class ChangeAtWrapper:
+    next_time: float
+    order: int
+    event: ChangeAt = field(compare=False)
+    times: Iterator[float] = field(compare=False)
+    t_events: list[float] = field(compare=False, default_factory=list)
+    y_events: list[NDArray] = field(compare=False, default_factory=list)
+
+
+@dataclass
+class ChangeAtHandler:
+    events: list[ChangeAtWrapper] = field(default_factory=list, init=False)
+
+    def add(self, order: int, event: ChangeAt, /):
+        times = iter(event.times)
+        wrapper = ChangeAtWrapper(
+            next_time=next(times),
+            order=order,
+            event=event,
+            times=times,
+        )
+        heapq.heappush(self.events, wrapper)
+
+    @property
+    def next_time(self) -> float:
+        return self.events[0].next_time
+
+    def apply_changes(self, t0: float, y0: NDArray) -> NDArray:
+        item = self.events[0]
+        while self.next_time == t0:
+            item = heapq.heappushpop(self.events, item)
+            item.t_events.append(t0)
+            item.y_events.append(y0)
+            y0 = item.event.change(t0, y0)
+            item.next_time = next(item.times, np.inf)
+        return y0
