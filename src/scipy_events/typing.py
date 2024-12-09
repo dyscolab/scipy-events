@@ -64,3 +64,10 @@ class Condition(Protocol):
     """
 
     def __call__(self, t: float, y: NDArray, /) -> float: ...
+
+
+@runtime_checkable
+class Change(Protocol):
+    """Change the solver state y from the current (t, y)."""
+
+    def __call__(self, t: float, y: NDArray, /) -> NDArray: ...

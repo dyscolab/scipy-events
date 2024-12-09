@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import mark, param
 
-from .. import Change, ChangeAt, solve_ivp
+from .. import ChangeAt, ChangeWhen, solve_ivp
 
 
 def rhs(t, y):
@@ -31,8 +31,8 @@ def test_change(dense_output: bool):
         y0=[y0],
         dense_output=dense_output,
         events=[
-            Change(
-                event=lambda t, y: y[0] - y_change,
+            ChangeWhen(
+                condition=lambda t, y: y[0] - y_change,
                 change=lambda t, y: np.array([y1]),
             )
         ],

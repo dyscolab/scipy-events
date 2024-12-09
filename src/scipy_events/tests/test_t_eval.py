@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import mark, param
 
-from .. import Change, SmallDerivatives, solve_ivp
+from .. import ChangeWhen, SmallDerivatives, solve_ivp
 
 
 @mark.parametrize(
@@ -18,8 +18,8 @@ from .. import Change, SmallDerivatives, solve_ivp
         param(lambda t, y: t > 0.5, id="condition"),
         param(SmallDerivatives(), id="with solver"),
         param(
-            Change(
-                event=lambda t, y: np.min(y) - 0.5,
+            ChangeWhen(
+                condition=lambda t, y: np.min(y) - 0.5,
                 change=lambda t, y: np.ones_like(y),
             ),
             id="change",

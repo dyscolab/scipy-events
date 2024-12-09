@@ -1,20 +1,22 @@
 from dataclasses import dataclass
-from typing import Callable, Iterable
+from typing import Iterable
 
-from numpy.typing import NDArray
-
-from .typing import Condition
+from .typing import Change, Condition
 
 
 @dataclass(kw_only=True)
-class Change:
-    event: Condition
-    change: Callable[[float, NDArray], NDArray]
+class ChangeWhen:
+    """Apply change when a given condition happens."""
+
+    condition: Condition
+    change: Change
     direction: float = 0.0
 
 
 @dataclass(kw_only=True)
 class ChangeAt:
+    """Apply change at the specified times."""
+
     times: Iterable[float]
-    change: Callable[[float, NDArray], NDArray]
+    change: Change
     direction: float = 0.0

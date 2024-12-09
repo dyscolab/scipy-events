@@ -9,7 +9,7 @@ from scipy.integrate import solve_ivp as _solve_ivp
 from scipy.integrate._ivp.ivp import BDF, LSODA, METHODS, OdeSolution
 from scipy.integrate._ivp.ivp import OdeSolver as _OdeSolver
 
-from .change import Change, ChangeAt
+from .change import ChangeAt, ChangeWhen
 from .typing import Condition, OdeResult, OdeSolver
 
 
@@ -112,7 +112,7 @@ def solve_ivp(
     | Literal["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"] = "RK45",
     t_eval: ArrayLike | None = None,
     dense_output: bool = False,
-    events: Sequence[Condition | Event | Change | ChangeAt] = (),
+    events: Sequence[Condition | Event | ChangeWhen | ChangeAt] = (),
     vectorized: bool = False,
     args: tuple[Any] | None = None,
     **options,
@@ -134,17 +134,17 @@ def solve_ivp(
 
     remaining_events: list[Event] = []
     remaining_position: list[int] = []
-    change_events: list[tuple[int, Change]] = []
+    change_events: list[tuple[int, ChangeWhen]] = []
     change_at_events = ChangeAtHandler()
     for i, e in enumerate(events):
         if isinstance(e, ChangeAt):
             change_at_events.add(i, e)
             continue
 
-        if isinstance(e, Change):
+        if isinstance(e, ChangeWhen):
             change_events.append((i, e))
             e = Event(
-                e.event,
+                e.condition,
                 terminal=True,
                 direction=e.direction,
             )
