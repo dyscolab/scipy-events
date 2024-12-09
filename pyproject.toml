@@ -72,11 +72,26 @@ pre-commit-install = "pre-commit install"
 lint = "pre-commit run"
 
 [tool.pixi.feature.build.dependencies]
+python = "*"
 uv = "*"
 
+[tool.pixi.feature.build.pypi-dependencies]
+mdremotifier = "<=0.5.0"
+
 [tool.pixi.feature.build.tasks]
-build = "uv build"
+build = { cmd = "uv build", depends-on = ["remotify"] }
 publish = "uv publish"
+remotify = { cmd = [
+  "mdremotifier",
+  "-i",
+  "README.md",
+  "-o",
+  "README.md",
+  "--url-prefix",
+  "https://github.com/maurosilber/scipy-events/blob/main",
+  "--img-url-prefix",
+  "https://raw.githubusercontent.com/maurosilber/scipy-events/refs/heads/main/",
+] }
 
 [tool.pixi.feature.test.dependencies]
 pytest = "*"
