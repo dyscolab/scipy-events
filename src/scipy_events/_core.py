@@ -102,6 +102,9 @@ class WithSolver:
         return self._ode_wrapper.solver  # type: ignore
 
 
+Events = Condition | Event | ChangeWhen | ChangeAt
+
+
 def solve_ivp(
     fun: Callable[[float, NDArray], NDArray],
     /,
@@ -112,7 +115,7 @@ def solve_ivp(
     | Literal["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"] = "RK45",
     t_eval: ArrayLike | None = None,
     dense_output: bool = False,
-    events: Sequence[Condition | Event | ChangeWhen | ChangeAt] = (),
+    events: Sequence[Events] = (),
     vectorized: bool = False,
     args: tuple[Any] | None = None,
     **options,
