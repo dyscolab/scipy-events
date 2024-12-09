@@ -63,11 +63,11 @@ class Condition(Protocol):
     Solvers will find an accurate value of t at which condition(t, y(t)) = 0 using a root-finding algorithm.
     """
 
-    def __call__(self, t: float, y: NDArray, /) -> float: ...
+    def __call__(self, t: float, y: NDArray, /, *args) -> float: ...
 
 
 @runtime_checkable
 class Change(Protocol):
     """Change the solver state y from the current (t, y)."""
 
-    def __call__(self, t: float, y: NDArray, /) -> NDArray: ...
+    def __call__(self, t: float, y: NDArray, /, *args) -> NDArray: ...

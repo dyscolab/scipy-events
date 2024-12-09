@@ -15,7 +15,7 @@ class SmallDerivatives(WithSolver):
     factor: float | NDArray = 10.0
     "Factor relative to solver tolerance."
 
-    def __call__(self, t: float, y: NDArray, /) -> float:
+    def __call__(self, t: float, y: NDArray, /, *args) -> float:
         atol = self.atol if self.atol is not None else self.solver.atol * self.factor
         rtol = self.rtol if self.rtol is not None else self.solver.rtol * self.factor
 
