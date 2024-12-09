@@ -4,7 +4,7 @@ from typing import Iterable
 from .typing import Change, Condition
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ChangeWhen:
     """Apply change when a given condition happens."""
 
@@ -13,7 +13,7 @@ class ChangeWhen:
     direction: float = 0.0
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ChangeAt:
     """Apply change at the specified times."""
 

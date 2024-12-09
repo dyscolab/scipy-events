@@ -13,7 +13,7 @@ def test_small_derivatives(method, tol: float | None, y0: float):
         lambda t, y: -(y - y0),
         t_span=(0, np.inf),
         y0=[y0 + 1],
-        events=[Event(SmallDerivatives(atol=tol, rtol=tol), terminal=True)],
+        events=[Event(condition=SmallDerivatives(atol=tol, rtol=tol), terminal=True)],
         method=method,
     )
     assert result.t_events is not None

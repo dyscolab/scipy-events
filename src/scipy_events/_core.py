@@ -1,6 +1,6 @@
 import heapq
 import itertools
-from dataclasses import KW_ONLY, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator, Literal, Sequence, cast
 
 import numpy as np
@@ -77,10 +77,9 @@ class _OdeWrapper(type):
         return solver
 
 
-@dataclass
+@dataclass(kw_only=True, frozen=True)
 class Event:
     condition: Condition
-    _: KW_ONLY
     terminal: bool | int = False
     "Whether to terminate integration if this event occurs, or after the specified number of times."
     direction: float = 0.0
@@ -147,20 +146,20 @@ def solve_ivp(
         if isinstance(e, ChangeWhen):
             change_events.append((i, e))
             e = Event(
-                e.condition,
+                condition=e.condition,
                 terminal=True,
                 direction=e.direction,
             )
 
         if not isinstance(e, Event):
             e = Event(
-                e,
+                condition=e,
                 terminal=getattr(e, "terminal", False),
                 direction=getattr(e, "direction", 0.0),
             )
 
         if isinstance(e.condition, WithSolver):
-            e.condition._ode_wrapper = ode_wrapper
+            object.__setattr__(e.condition, "_ode_wrapper", ode_wrapper)
 
         remaining_events.append(e)
         remaining_position.append(i)
@@ -210,7 +209,7 @@ def solve_ivp(
 
     for e in remaining_events:
         if isinstance(e, WithSolver):
-            del e._ode_wrapper
+            object.__delattr__(e.condition, "_ode_wrapper")
 
     result = _join_results(results)
     if result.t_events is not None and result.y_events is not None:

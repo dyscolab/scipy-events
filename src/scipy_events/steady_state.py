@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from ._core import WithSolver
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class SmallDerivatives(WithSolver):
     atol: float | NDArray | None = None
     "Absolute tolerance. Uses solver.atol * factor by default."
