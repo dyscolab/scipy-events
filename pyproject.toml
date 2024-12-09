@@ -1,9 +1,9 @@
 [project]
 name = "scipy-events"
 description = "A library of events for scipy.integrate.solve_ivp."
-dynamic = ["version"]
+version = "0.2.0"
 authors = [{ name = "Mauro Silberberg", email = "maurosilber@gmail.com" }]
-readme = { file = "README.md", content-type = "text/markdown" }
+readme = "README.md"
 license = "MIT"
 classifiers = ["Programming Language :: Python :: 3"]
 requires-python = ">=3.10"
@@ -16,11 +16,8 @@ changelog = "https://github.com/maurosilber/scipy-events/blob/main/CHANGELOG.md"
 documentation = "https://maurosilber.github.io/scipy-events"
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.version]
-source = "vcs"
 
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { git = true }]
