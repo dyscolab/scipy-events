@@ -10,9 +10,10 @@ requires-python = ">=3.10"
 dependencies = ["numpy", "scipy"]
 
 [project.urls]
-Homepage = "https://github.com/maurosilber/scipy-events"
-Issues = "https://github.com/maurosilber/scipy-events/issues"
-Documentation = "https://maurosilber.github.io/scipy-events"
+homepage = "https://github.com/maurosilber/scipy-events"
+issues = "https://github.com/maurosilber/scipy-events/issues"
+changelog = "https://github.com/maurosilber/scipy-events/blob/main/CHANGELOG.md"
+documentation = "https://maurosilber.github.io/scipy-events"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
