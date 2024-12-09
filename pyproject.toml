@@ -48,9 +48,6 @@ platforms = ['osx-arm64', 'linux-64']
 [tool.pixi.dependencies]
 python = ">=3.10"
 
-[tool.pixi.pypi-dependencies]
-scipy-events = { path = ".", editable = true }
-
 [tool.pixi.environments]
 lint = { features = ["lint"], no-default-feature = true }
 build = { features = ["build"], no-default-feature = true }
