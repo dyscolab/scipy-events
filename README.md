@@ -8,11 +8,56 @@
 [![PyPI Badge][pypi-badge]][pypi-url]
 [![Python version Badge][pypi-version-badge]][pypi-version-url]
 
-A library of events for scipy.integrate.solve_ivp.
+A library of events for `scipy.integrate.solve_ivp`.
+
+It provides the following events:
+
+- `ChangeWhen` to apply a change when a given event happens.
+- `ChangeAt` to apply a change at some given times.
+
+## Usage
+
+```python
+import numpy as np
+from scipy_events import ChangeAt, solve_ivp
+
+result = solve_ivp(
+    lambda t, y: -y,
+    t_span=(0, 16),
+    y0=[1],
+    events=[
+        ChangeAt(
+            times=[4, 8],
+            change=lambda t, y: np.full_like(y, 1),
+        )
+    ],
+)
+```
+
+![](docs/figures/change-at.png)
+
+```python
+import numpy as np
+from scipy_events import ChangeWhen, solve_ivp
+
+result = solve_ivp(
+    lambda t, y: -y,
+    t_span=(0, 16),
+    y0=[1],
+    events=[
+        ChangeWhen(
+            condition=lambda t, y: y[0] - 1e-2,
+            change=lambda t, y: np.full_like(y, 1),
+        )
+    ],
+)
+```
+
+![](docs/figures/change-when.png)
 
 ## Install
 
-Using [pixi](pixi-url),
+Using [pixi][pixi-url],
 install from PyPI with:
 
 ```sh
@@ -35,7 +80,7 @@ pip install git+https://github.com/maurosilber/scipy-events.git  # from GitHub
 
 ## Development
 
-This project is managed by [pixi](https://pixi.sh).
+This project is managed by [pixi][pixi-url].
 You can install it for development using:
 
 ```sh
