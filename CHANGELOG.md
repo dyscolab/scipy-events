@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - 2024-12-09
+
+### Added
+
+- `Events` type union of all event types accepted by `solve_ivp`.
+- Allow passing `args` to Conditions and Change functions.
+
+### Changed
+
+- Change events to `kw_only` and `frozen` dataclasses.
+
 ## 0.2.0 - 2024-12-09
 
 ### Changed
