@@ -95,6 +95,10 @@ remotify = { cmd = [
 pytest = "*"
 tqdm = ">=4.67.1,<5"
 
+[tool.pixi.feature.test.pypi-dependencies]
+scipy-events = { path = ".", editable = true }
+pytest-readme = ">=1.0.1,<2"
+
 [tool.pixi.feature.test.tasks]
 test = "pytest --doctest-modules"
 
