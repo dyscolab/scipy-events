@@ -2598,7 +2598,7 @@ packages:
 - pypi: .
   name: scipy-events
   version: 0.3.1
-  sha256: 73b96d34291c88fd5cf42ac9cb0601654491f9719cdfe8595ae404474ab73ef4
+  sha256: 4a0bb944974eebb4172570b476f5a058d2e5f8cbc7d76075b4a0f73021d61db0
   requires_dist:
   - numpy
   - scipy
