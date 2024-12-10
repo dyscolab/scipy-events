@@ -125,14 +125,14 @@ PyPI Project Name: scipy-events
 
 [ci-badge]: https://img.shields.io/github/actions/workflow/status/maurosilber/scipy-events/ci.yml
 [ci-url]: https://github.com/maurosilber/scipy-events/actions/workflows/ci.yml
-[conda-forge-badge]: https://img.shields.io/conda/vn/conda-forge/scipy_events?logoColor=white&logo=conda-forge
-[conda-forge-url]: https://prefix.dev/channels/conda-forge/packages/scipy_events
+[conda-forge-badge]: https://img.shields.io/conda/vn/conda-forge/scipy-events?logoColor=white&logo=conda-forge
+[conda-forge-url]: https://prefix.dev/channels/conda-forge/packages/scipy-events
 [copier-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-black.json
 [copier-url]: https://github.com/copier-org/copier
 [license-badge]: https://img.shields.io/badge/license-MIT-blue
 [pixi-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json
 [pixi-url]: https://pixi.sh
-[pypi-badge]: https://img.shields.io/pypi/v/scipy_events.svg?logo=pypi&logoColor=white
-[pypi-url]: https://pypi.org/project/scipy_events
-[pypi-version-badge]: https://img.shields.io/pypi/pyversions/scipy_events?logoColor=white&logo=python
-[pypi-version-url]: https://pypi.org/project/scipy_events
+[pypi-badge]: https://img.shields.io/pypi/v/scipy-events.svg?logo=pypi&logoColor=white
+[pypi-url]: https://pypi.org/project/scipy-events
+[pypi-version-badge]: https://img.shields.io/pypi/pyversions/scipy-events?logoColor=white&logo=python
+[pypi-version-url]: https://pypi.org/project/scipy-events
