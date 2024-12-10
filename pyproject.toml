@@ -74,7 +74,7 @@ python = "*"
 uv = "*"
 
 [tool.pixi.feature.build.pypi-dependencies]
-mdremotifier = "<=0.5.0"
+mdremotifier = ">=0.5.0"
 
 [tool.pixi.feature.build.tasks]
 build = { cmd = "uv build", depends-on = ["remotify"] }
