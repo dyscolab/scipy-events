@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 - 2024-12-09
+
+### Changed
+
+- Remove `*args` from `Condition` and `Change` protocols.
+  Both of these are now correct for `pyright`:
+  ```python
+  def cond(t, y): ...
+  def cond(t, y, *args): ...
+  ```
+
 ## 0.3.0 - 2024-12-09
 
 ### Added

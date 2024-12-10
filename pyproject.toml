@@ -1,7 +1,7 @@
 [project]
 name = "scipy-events"
 description = "A library of events for scipy.integrate.solve_ivp."
-version = "0.3.0"
+version = "0.3.1"
 authors = [{ name = "Mauro Silberberg", email = "maurosilber@gmail.com" }]
 readme = "README.md"
 license = "MIT"
@@ -42,7 +42,7 @@ channels = ["https://fast.prefix.dev/conda-forge"]
 platforms = ['osx-arm64', 'linux-64']
 
 [tool.pixi.tasks]
-release = "git tag $(pixi project version get) && git push --follow-tags || echo 'Run: pixi project version <major|minor|update>'"
+release = "git tag $(pixi project version get) && git push --follow-tags || echo 'Run: pixi project version <major|minor|patch>'"
 
 [tool.pixi.dependencies]
 python = ">=3.10"
