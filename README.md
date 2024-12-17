@@ -28,7 +28,7 @@ result = solve_ivp(
     events=[
         ChangeAt(
             times=[4, 8],
-            change=lambda t, y: np.full_like(y, 1),
+            change=lambda t, y, args: (np.full_like(y, 1), args),
         )
     ],
 )
@@ -47,7 +47,7 @@ result = solve_ivp(
     events=[
         ChangeWhen(
             condition=lambda t, y: y[0] - 1e-2,
-            change=lambda t, y: np.full_like(y, 1),
+            change=lambda t, y, args: (np.full_like(y, 1), args),
         )
     ],
 )

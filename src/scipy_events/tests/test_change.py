@@ -33,7 +33,7 @@ def test_change(dense_output: bool):
         events=[
             ChangeWhen(
                 condition=lambda t, y: y[0] - y_change,
-                change=lambda t, y: np.array([y1]),
+                change=lambda t, y, args: (np.array([y1]), args),
             )
         ],
         rtol=1e-6,  # to compare with solution
@@ -85,7 +85,7 @@ def test_change_at(dense_output: bool):
         events=[
             ChangeAt(
                 times=[t_change],
-                change=lambda t, y: np.array([y1]),
+                change=lambda t, y, args: (np.array([y1]), args),
             )
         ],
         rtol=1e-6,  # to compare with solution

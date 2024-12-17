@@ -8,11 +8,14 @@ from .. import ChangeAt, ChangeWhen, Event, SmallDerivatives, solve_ivp
     [
         param(lambda t, y, *args: t - 0.5, id="Condition"),
         param(Event(condition=lambda t, y, *args: t - 0.5), id="Event"),
-        param(ChangeAt(times=(0.5,), change=lambda t, y, *args: y + 1), id="ChangeAt"),
+        param(
+            ChangeAt(times=(0.5,), change=lambda t, y, args: (y + 1, args)),
+            id="ChangeAt",
+        ),
         param(
             ChangeWhen(
                 condition=lambda t, y, *args: t - 0.5,
-                change=lambda t, y, *args: y + 1,
+                change=lambda t, y, args: (y + 1, args),
             ),
             id="ChangeWhen",
         ),

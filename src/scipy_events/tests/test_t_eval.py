@@ -20,7 +20,7 @@ from .. import ChangeWhen, SmallDerivatives, solve_ivp
         param(
             ChangeWhen(
                 condition=lambda t, y: np.min(y) - 0.5,
-                change=lambda t, y: np.ones_like(y),
+                change=lambda t, y, args: (np.ones_like(y), args),
             ),
             id="change",
         ),

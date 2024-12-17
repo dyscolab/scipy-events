@@ -1,7 +1,7 @@
 import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Callable, Iterator, Literal, Sequence, cast
+from typing import Any, Callable, Iterator, Literal, Sequence, cast
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -191,7 +191,7 @@ def solve_ivp(
                     if r.t_events[i].size == 1:
                         t0 = r.t_events[i][0]
                         y0 = r.y_events[i][:, 0].copy()
-                        y0 = e.change(t0, y0, *args)
+                        y0, args = e.change(t0, y0, args)
                         t0 = np.nextafter(t0, np.inf)
                         if t_eval is not None:
                             t_eval = t_eval[np.searchsorted(t_eval, t0) :]
@@ -201,7 +201,7 @@ def solve_ivp(
             case 0 if t_next < t_end:
                 t0 = ode_wrapper.solver.t
                 y0 = ode_wrapper.solver.y.copy()
-                y0 = change_at_events.apply_changes(t0, y0, args)
+                y0, args = change_at_events.apply_changes(t0, y0, args)
                 t0 = np.nextafter(t0, np.inf)
                 t_next = min(change_at_events.next_time, t_end)
             case _:
@@ -300,12 +300,17 @@ class ChangeAtHandler:
     def next_time(self) -> float:
         return self.events[0].next_time
 
-    def apply_changes(self, t0: float, y0: NDArray, args: tuple) -> NDArray:
+    def apply_changes(
+        self,
+        t0: float,
+        y0: NDArray,
+        args: tuple,
+    ) -> tuple[NDArray, tuple[Any]]:
         item = self.events[0]
         while self.next_time == t0:
             item = heapq.heappushpop(self.events, item)
             item.t_events.append(t0)
             item.y_events.append(y0)
-            y0 = item.event.change(t0, y0, *args)
+            y0, args = item.event.change(t0, y0, args)
             item.next_time = next(item.times, np.inf)
-        return y0
+        return y0, args

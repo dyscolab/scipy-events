@@ -1,4 +1,4 @@
-from typing import Callable, Protocol, runtime_checkable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 from numpy.typing import NDArray
 from scipy.integrate import OdeSolution
@@ -68,6 +68,6 @@ class Condition(Protocol):
 
 @runtime_checkable
 class Change(Protocol):
-    """Change the solver state y from the current (t, y)."""
+    """Change the solver state y and parameters args from the current (t, y)."""
 
-    def __call__(self, t: float, y: NDArray, /) -> NDArray: ...
+    def __call__(self, t: float, y: NDArray, /, args) -> tuple[NDArray, tuple[Any]]: ...
