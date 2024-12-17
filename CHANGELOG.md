@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 - 2024-12-17
+
+### Changed
+
+- `ChangeAt` and `ChangeWhen` events now allow to change parameters.
+  This changed the signature of `Change` functions
+  from returning only the new initial conditions `y`
+  to returning a tuple of the initial conditions and parameters `(y, args)`.
+
 ## 0.3.1 - 2024-12-09
 
 ### Changed
