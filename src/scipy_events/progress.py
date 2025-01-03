@@ -19,7 +19,7 @@ class Progress:
 
         return cls(tqdm(total=total_time))
 
-    def __call__(self, t: float, y, /):
+    def __call__(self, t: float, y, *args):
         if self.pbar.total is None:
             self.pbar.desc = f"{t:=.3f}"
             self.pbar.update()
