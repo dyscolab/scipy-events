@@ -2597,8 +2597,8 @@ packages:
   timestamp: 1729481942884
 - pypi: .
   name: scipy-events
-  version: 0.4.0
-  sha256: 6352d91cb64be4b58f37fc603efc6c9a196e557572ad7e4baddd64ad189b23f1
+  version: 0.4.1
+  sha256: 9293b5623e7de6e0f7d690e7f9caa40b9d7f6d429b8af30a86aba6c08a1fb71c
   requires_dist:
   - numpy
   - scipy

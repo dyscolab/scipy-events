@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2025-01-16
+
+### Fixed
+
+- `Progress` now works for functions requiring `*args`.
+
 ## 0.4.0 - 2024-12-17
 
 ### Changed
