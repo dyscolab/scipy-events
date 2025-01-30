@@ -169,6 +169,8 @@ def solve_ivp(
 
     results = []
     while t0 < t_end:
+        if t_eval is not None:
+            t_eval = t_eval[np.searchsorted(t_eval, t0) :]
         r: OdeResult = _solve_ivp(
             fun,
             t_span=(t0, t_next),
@@ -193,8 +195,6 @@ def solve_ivp(
                         y0 = r.y_events[i][:, 0].copy()
                         y0, args = e.change(t0, y0, args)
                         t0 = np.nextafter(t0, np.inf)
-                        if t_eval is not None:
-                            t_eval = t_eval[np.searchsorted(t_eval, t0) :]
                         break
                 else:
                     break  # not a change event
@@ -235,7 +235,7 @@ def _join_results(results: list[OdeResult], /) -> OdeResult:
     # Modify last to retain its message and success attributes.
     last = results[-1]
     last.t = np.concatenate([r.t for r in results])
-    last.y = np.concatenate([r.y for r in results], axis=-1)
+    last.y = np.concatenate([np.atleast_2d(r.y) for r in results], axis=-1)
     last.nfev = sum(r.nfev for r in results)
     last.njev = sum(r.njev for r in results)
     last.nlu = sum(r.nlu for r in results)
