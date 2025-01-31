@@ -166,17 +166,19 @@ def solve_ivp(
 
     t0, t_end = t_span
     t_next = change_at_events.next_time if len(change_at_events.events) > 0 else t_end
+    current_t_eval = t_eval
 
     results = []
     while t0 < t_end:
         if t_eval is not None:
             t_eval = t_eval[np.searchsorted(t_eval, t0) :]
+            current_t_eval = t_eval[: np.searchsorted(t_eval, t_next, "right")]
         r: OdeResult = _solve_ivp(
             fun,
             t_span=(t0, t_next),
             y0=y0,
             method=ode_wrapper,  # type: ignore
-            t_eval=t_eval,
+            t_eval=current_t_eval,
             dense_output=dense_output,
             events=remaining_events,
             vectorized=vectorized,
