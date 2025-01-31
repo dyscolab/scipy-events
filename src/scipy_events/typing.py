@@ -1,4 +1,4 @@
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import Any, Callable, Literal, Protocol, runtime_checkable
 
 from numpy.typing import NDArray
 from scipy.integrate import OdeSolution
@@ -45,7 +45,7 @@ class OdeResult(Protocol):
     "Number of evaluations of the Jacobian."
     nlu: int
     "Number of LU decompositions."
-    status: int
+    status: Literal[-1, 0, 1]
     """Reason for algorithm termination:
     - -1: Integration step failed.
     - 0: The solver successfully reached the end of tspan.

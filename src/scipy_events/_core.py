@@ -1,7 +1,7 @@
 import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterator, Literal, Sequence, cast
+from typing import Any, Callable, Iterator, Literal, Sequence, assert_never, cast
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -124,7 +124,10 @@ def solve_ivp(
     All parameters are passed unmodified to scipy.integrate.solve_ivp.
     Read its documentation.
 
-    It is only necessary to call this function if you need to use EventWithSolver events.
+    This function is needed to use the following event types:
+    - WithSolver
+    - ChangeAt
+    - ChangeWhen
     Otherwise, scipy.integrate.solve_ivp can be used.
     """
     if t_eval is not None:
@@ -134,6 +137,15 @@ def solve_ivp(
         method = METHODS[method]
     ode_wrapper = _OdeWrapper(method)  # type: ignore
 
+    # Split and normalize events:
+    # - ChangeAt:
+    #       handled separately, stepping until the next time.
+    # - ChangeWhen:
+    #       replaced by a terminal event, where the Change will be applied and the solve is restarted.
+    # - Condition:
+    #       wrapped in the Event class, but scipy.integrate.solve_ivp would handle them correctly as they are.
+    # - WithSolver:
+    #       pass the solver instance, that needs to be removed before exiting.
     remaining_events: list[Event] = []
     remaining_position: list[int] = []
     change_events: list[tuple[int, ChangeWhen]] = []
@@ -164,6 +176,9 @@ def solve_ivp(
         remaining_events.append(e)
         remaining_position.append(i)
 
+    # t_span is split into multiple subspans:
+    # [(t0, t_next_0), (t_next_0, t_next_1), ... (t_next_N, t_end)]
+    # where t_next are given by the ChangeAt events
     t0, t_end = t_span
     t_next = change_at_events.next_time if len(change_at_events.events) > 0 else t_end
     current_t_eval = t_eval
@@ -171,6 +186,7 @@ def solve_ivp(
     results = []
     while t0 < t_end:
         if t_eval is not None:
+            # we have to restrict current_t_eval to the current t_span
             t_eval = t_eval[np.searchsorted(t_eval, t0) :]
             current_t_eval = t_eval[: np.searchsorted(t_eval, t_next, "right")]
         r: OdeResult = _solve_ivp(
@@ -188,6 +204,9 @@ def solve_ivp(
         results.append(r)
 
         match r.status:
+            # Terminal event
+            # If it is a change event, apply the change and continue.
+            # Otherwise, break out of the solve loop.
             case 1:
                 assert r.t_events is not None
                 assert r.y_events is not None
@@ -200,19 +219,29 @@ def solve_ivp(
                         break
                 else:
                     break  # not a change event
+
+            # Reached end of t_span but not t_end, ie, a ChangeAt event
+            # Apply change and continue
             case 0 if t_next < t_end:
                 t0 = ode_wrapper.solver.t
                 y0 = ode_wrapper.solver.y.copy()
                 y0, args = change_at_events.apply_changes(t0, y0, args)
                 t0 = np.nextafter(t0, np.inf)
                 t_next = min(change_at_events.next_time, t_end)
-            case _:
+
+            # Reached end of t_span or error
+            case 0 | -1:
                 break
 
+            case _:
+                assert_never(r.status)
+
+    # Remove the solver instance from WithSolver events
     for e in remaining_events:
         if isinstance(e, WithSolver):
             object.__delattr__(e.condition, "_ode_wrapper")
 
+    # Join results
     result = _join_results(results)
     if result.t_events is not None and result.y_events is not None:
         t_events, y_events = [], []
