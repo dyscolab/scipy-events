@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.4 - 2025-01-31
+
+### Fixed
+
+- Fixed issue with `ChangeAt` events and `t_eval` not covered in previous fix.
+
 ## 0.4.2 - 2025-01-30
 
 ### Fixed
