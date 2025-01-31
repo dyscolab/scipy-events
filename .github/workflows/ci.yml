@@ -1,4 +1,4 @@
-name: Test and release when tagged
+name: CI
 
 on: [push]
 
@@ -46,5 +46,5 @@ jobs:
       - name: Build the package
         run: pixi run --environment build build
       - name: Publish to PyPI
-        run: pixi run --environment build publish
         if: github.ref_type == 'tag'
+        run: pixi run --environment build publish

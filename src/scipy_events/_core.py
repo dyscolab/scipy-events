@@ -1,7 +1,7 @@
 import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterator, Literal, Sequence, assert_never, cast
+from typing import Any, Callable, Iterator, Literal, Sequence, cast
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -234,7 +234,7 @@ def solve_ivp(
                 break
 
             case _:
-                assert_never(r.status)
+                raise ValueError("unknown status: {r.status}")
 
     # Remove the solver instance from WithSolver events
     for e in remaining_events:
