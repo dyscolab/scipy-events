@@ -1,6 +1,6 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 _commit: 07b08ea
-_src_path: https://github.com/maurosilber/python-lib-template
+_src_path: https://github.com/dyscolab/python-lib-template
 github_username: maurosilber
 license: MIT
 max_python_version: '3.13'

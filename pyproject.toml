@@ -10,10 +10,10 @@ requires-python = ">=3.10"
 dependencies = ["numpy", "scipy"]
 
 [project.urls]
-homepage = "https://github.com/maurosilber/scipy-events"
-issues = "https://github.com/maurosilber/scipy-events/issues"
-changelog = "https://github.com/maurosilber/scipy-events/blob/main/CHANGELOG.md"
-documentation = "https://maurosilber.github.io/scipy-events"
+homepage = "https://github.com/dyscolab/scipy-events"
+issues = "https://github.com/dyscolab/scipy-events/issues"
+changelog = "https://github.com/dyscolab/scipy-events/blob/main/CHANGELOG.md"
+documentation = "https://dyscolab.github.io/scipy-events"
 
 [build-system]
 requires = ["hatchling"]
@@ -73,8 +73,8 @@ mdremotifier = "*"
 build = { cmd = "uv build", depends-on = ["remotify"] }
 publish = "uv publish"
 remotify = """mdremotifier -i README.md -o README.md
---url-prefix https://github.com/maurosilber/scipy-events/blob/main
---img-url-prefix https://raw.githubusercontent.com/maurosilber/scipy-events/refs/heads/main/
+--url-prefix https://github.com/dyscolab/scipy-events/blob/main
+--img-url-prefix https://raw.githubusercontent.com/dyscolab/scipy-events/refs/heads/main/
 """
 
 [tool.pixi.dependencies]

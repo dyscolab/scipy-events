@@ -67,7 +67,7 @@ pixi add --pypi scipy-events
 or install the latest development version from GitHub with:
 
 ```sh
-pixi add --pypi scipy-events@https://github.com/maurosilber/scipy-events.git
+pixi add --pypi scipy-events@https://github.com/dyscolab/scipy-events.git
 ```
 
 Otherwise,
@@ -75,7 +75,7 @@ use `pip` or your `pip`-compatible package manager:
 
 ```sh
 pip install scipy-events  # from PyPI
-pip install git+https://github.com/maurosilber/scipy-events.git  # from GitHub
+pip install git+https://github.com/dyscolab/scipy-events.git  # from GitHub
 ```
 
 ## Development
@@ -84,7 +84,7 @@ This project is managed by [pixi][pixi-url].
 You can install it for development using:
 
 ```sh
-git clone https://github.com/maurosilber/scipy-events
+git clone https://github.com/dyscolab/scipy-events
 cd scipy-events
 pixi run pre-commit-install
 ```
@@ -123,8 +123,8 @@ PyPI Project Name: scipy-events
  Environment name: pypi
 ```
 
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/maurosilber/scipy-events/ci.yml
-[ci-url]: https://github.com/maurosilber/scipy-events/actions/workflows/ci.yml
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/dyscolab/scipy-events/ci.yml
+[ci-url]: https://github.com/dyscolab/scipy-events/actions/workflows/ci.yml
 [conda-forge-badge]: https://img.shields.io/conda/vn/conda-forge/scipy-events?logoColor=white&logo=conda-forge
 [conda-forge-url]: https://prefix.dev/channels/conda-forge/packages/scipy-events
 [copier-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-black.json
